@@ -12,6 +12,7 @@ app.use(express.json());
 
 
 app.use('/api', router);
+app.get("/", (req, res) => res.send("API WORKING FINE"))
 
 
 const start = async () => {

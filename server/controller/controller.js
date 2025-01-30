@@ -1,7 +1,9 @@
 import multer from 'multer';
 import ExcelJS from 'exceljs';
-import DataModel from '../model/dbmodel.js';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import path from 'path';
+import DataModel from '../model/dbmodel.js';
 
 export const sheetConfig = {
     'Default': {
@@ -201,51 +203,40 @@ export const deleteRow = async (req, res) => {
     }
 };
 
+
 export const exportToExcel = async (req, res) => {
+    // const __filename = fileURLToPath(import.meta.url);
+    // const __dirname = dirname(__filename);
     try {
         const data = await DataModel.find().lean();
-        const workbook = new ExcelJS.Workbook();
-        const sheet = workbook.addWorksheet("Exported Data");
+        if (!data || data.length === 0) {
+            return res.status(404).send('No data available for export');
+        }
 
+        const headers = ['Name', 'Amount', 'Date', 'Verified'];
+        const headerRow = headers.join(' | ');
+        const divider = headers.map(() => '--------').join('|');
 
-        sheet.addRow(["Name", "Amount", "Date", "Verified"]);
-
-        data.forEach((row) => {
-
-            const dateObj = new Date(row.date);
-            const formattedDate = [
-                dateObj.getDate().toString().padStart(2, '0'),
-                (dateObj.getMonth() + 1).toString().padStart(2, '0'),
-                dateObj.getFullYear()
-            ].join('-');
-
-
-            const formattedAmount = row.amount.toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-
-            sheet.addRow([
-                row.name,
-                formattedAmount,
-                formattedDate,
-                row.verified
-            ]);
+        const rows = data.map(item => {
+            return [
+                item.name,
+                item.amount,
+                new Date(item.date).toLocaleDateString(),
+                item.verified ? 'Yes' : 'No'
+            ].join(' | ');
         });
 
+        const table = [headerRow, divider, ...rows].join('\n');
 
-        const filePath = path.join(__dirname, "exported_data.xlsx");
-        await workbook.xlsx.writeFile(filePath);
-
-        res.download(filePath, "exported_data.xlsx", (err) => {
-            fs.unlinkSync(filePath);
-            if (err) console.error('Download error:', err);
-        });
+        res.setHeader('Content-Type', 'text/plain');
+        return res.send(table);
 
     } catch (error) {
-        res.status(500).json({
-            error: "Export failed",
-            details: error.message
+        console.error('Export error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Export failed',
+            error: error.message
         });
     }
 };
