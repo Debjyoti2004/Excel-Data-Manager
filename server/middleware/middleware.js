@@ -35,11 +35,11 @@ export const errorHandler = (err, req, res, next) => {
 };
 
 
-export const corsMiddleware = cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'DELETE', 'PUT'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-});
+// export const corsMiddleware = cors({
+//   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+//   methods: ['GET', 'POST', 'DELETE', 'PUT'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// });
 
 
 export const validateId = (req, res, next) => {

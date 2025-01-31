@@ -8,11 +8,10 @@ import {
     exportToExcel
   } from '../controller/controller.js';
 
-import { errorHandler, corsMiddleware, validateId } from "../middleware/middleware.js"
+import { errorHandler, validateId } from "../middleware/middleware.js"
 
 const router = express.Router();
 
-router.use(corsMiddleware);
 router.post('/upload', upload.single('file'), uploadFile);
 router.post('/import', importData);
 router.get('/data', getImportedData);

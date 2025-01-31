@@ -1,58 +1,48 @@
 import multer from 'multer';
 import ExcelJS from 'exceljs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import path from 'path';
 import DataModel from '../model/dbmodel.js';
 
-export const sheetConfig = {
-    'Default': {
-        columns: {
-            Name: { required: true, dbField: 'name' },
-            Amount: {
-                required: true,
-                dbField: 'amount',
-                validate: (value) => !isNaN(value) && value > 0
-            },
-            Date: {
-                required: true,
-                dbField: 'date',
-                validate: (value) => {
-                    const current = new Date();
-                    return value.getMonth() === current.getMonth() &&
-                        value.getFullYear() === current.getFullYear();
-                }
-            },
-            Verified: {
-                required: true,
-                dbField: 'verified',
-                validate: (value) => ['Yes', 'No'].includes(value)
-            }
+const excelDateToJSDate = (serial) => {
+    const utcDays = Math.floor(serial - 25569);
+    const utcValue = utcDays * 86400;
+    return new Date(utcValue * 1000);
+  };
+  
+  const sheetConfig = {
+    Default: {
+      columns: {
+        Name: { dbField: 'name', required: true },
+        Amount: { dbField: 'amount', required: true, validate: (v) => typeof v === 'number' },
+        Date: {
+          dbField: 'date',
+          required: true, 
+          validate: (v) => v instanceof Date && !isNaN(v.getTime())
+        },
+        Verified: {
+          dbField: 'verified',
+          required: true, 
+          validate: (v) => ['Yes', 'No'].includes(v)
         }
+      }
     },
-    'Invoices': {
-        columns: {
-            Name: { required: true, dbField: 'name' },
-            InvoiceDate: { required: true, dbField: 'invoiceDate' },
-            Amount: {
-                required: true,
-                dbField: 'amount',
-                validate: (value) => value > 0
-            },
-            Status: {
-                required: true,
-                dbField: 'status',
-                validate: (value) => ['Paid', 'Pending'].includes(value)
-            }
+    Invoices: {
+      columns: {
+        Name: { dbField: 'name', required: true },
+        InvoiceDate: {
+          dbField: 'invoiceDate',
+          required: true,
+          validate: (v) => v instanceof Date && !isNaN(v.getTime())
+        },
+        Amount: { dbField: 'amount', required: true, validate: (v) => typeof v === 'number' },
+        Status: {
+          dbField: 'status',
+          required: true,
+          validate: (v) => ['Paid', 'Pending'].includes(v)
         }
+      }
     }
-};
-
-
-export const excelDateToJSDate = (serial) => {
-    const utc_days = Math.floor(serial - 25569);
-    return new Date(utc_days * 86400 * 1000);
-};
+  };
 
 export const upload = multer({
     storage: multer.memoryStorage(),
@@ -68,87 +58,89 @@ export const upload = multer({
 
 export const uploadFile = async (req, res) => {
     try {
-        if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(req.file.buffer);
-
-        const validationErrors = [];
-        const validData = [];
-
-        workbook.eachSheet((sheet) => {
-            const config = sheetConfig[sheet.name] || sheetConfig.Default;
-            const sheetErrors = [];
-            const sheetValidRows = [];
-
-            sheet.eachRow((row, rowNumber) => {
-                if (rowNumber === 1) return;
-
-                const rowData = {};
-                const rowErrors = [];
-
-                row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                    const header = sheet.getRow(1).getCell(colNumber).value?.trim();
-                    const columnConfig = config.columns[header];
-
-                    if (columnConfig) {
-                        let value = cell.value;
-
-
-                        if (header === 'Date' && cell.type === ExcelJS.ValueType.Number) {
-                            value = excelDateToJSDate(value);
-                        }
-
-
-                        if (header === 'Verified' && typeof value === 'boolean') {
-                            value = value ? 'Yes' : 'No';
-                        }
-
-
-                        if (columnConfig.required && (value === null || value === undefined || value === '')) {
-                            rowErrors.push(`${header} is required`);
-                        }
-
-
-                        if (value && columnConfig.validate && !columnConfig.validate(value)) {
-                            rowErrors.push(`Invalid ${header} value`);
-                        }
-
-
-                        if (columnConfig.dbField) {
-                            rowData[columnConfig.dbField] = value;
-                        }
-                    }
-                });
-
-                if (rowErrors.length > 0) {
-                    sheetErrors.push({ row: rowNumber, errors: rowErrors });
-                } else {
-                    sheetValidRows.push({
-                        sheetName: sheet.name,
-                        ...rowData
-                    });
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(req.file.buffer);
+  
+      const validationErrors = [];
+      const validData = [];
+  
+      workbook.eachSheet((sheet) => {
+        const config = sheetConfig[sheet.name] || sheetConfig.Default;
+        const sheetErrors = [];
+        const sheetValidRows = [];
+  
+        sheet.eachRow((row, rowNumber) => {
+          if (rowNumber === 1) return;
+  
+          const rowData = {};
+          const rowErrors = [];
+  
+          row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+            const header = sheet.getRow(1).getCell(colNumber).value?.trim();
+            const columnConfig = config.columns[header];
+  
+            if (columnConfig) {
+              let value = cell.value;
+  
+              if (header === 'Date' || header === 'InvoiceDate') {
+                if (cell.type === ExcelJS.ValueType.Number) {
+                  value = excelDateToJSDate(value);
+                } else if (typeof value === 'string') {
+                  value = new Date(value.replace(' ', 'T') + 'Z');
+                  if (isNaN(value.getTime())) {
+                    rowErrors.push(`Invalid ${header} value`);
+                  }
                 }
-            });
-
-            if (sheetErrors.length > 0) {
-                validationErrors.push({ sheet: sheet.name, errors: sheetErrors });
+              }
+  
+              if (header === 'Verified' && typeof value === 'boolean') {
+                value = value ? 'Yes' : 'No';
+              }
+  
+              if (columnConfig.required && (value === null || value === undefined || value === '')) {
+                rowErrors.push(`${header} is required`);
+              }
+  
+              if (value && columnConfig.validate && !columnConfig.validate(value)) {
+                rowErrors.push(`Invalid ${header} value`);
+              }
+  
+              if (columnConfig.dbField && rowErrors.length === 0) {
+                rowData[columnConfig.dbField] = value instanceof Date ? value.toISOString() : value;
+              }
             }
-            validData.push(...sheetValidRows);
+          });
+  
+          if (rowErrors.length > 0) {
+            sheetErrors.push({ row: rowNumber, errors: rowErrors });
+          } else {
+            sheetValidRows.push({
+              sheetName: sheet.name,
+              ...rowData
+            });
+          }
         });
-
-        res.status(200).json({
-            errors: validationErrors,
-            validData,
-            message: validationErrors.length > 0
-                ? 'Validation completed with errors'
-                : 'All data validated successfully'
-        });
-
+  
+        if (sheetErrors.length > 0) {
+          validationErrors.push({ sheet: sheet.name, errors: sheetErrors });
+        }
+        validData.push(...sheetValidRows);
+      });
+  
+      res.status(200).json({
+        errors: validationErrors,
+        validData,
+        message: validationErrors.length > 0
+          ? 'Validation completed with errors'
+          : 'All data validated successfully'
+      });
+  
     } catch (error) {
-        res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
-};
+  };
 
 
 export const importData = async (req, res) => {
@@ -205,8 +197,7 @@ export const deleteRow = async (req, res) => {
 
 
 export const exportToExcel = async (req, res) => {
-    // const __filename = fileURLToPath(import.meta.url);
-    // const __dirname = dirname(__filename);
+
     try {
         const data = await DataModel.find().lean();
         if (!data || data.length === 0) {

@@ -2,17 +2,29 @@ import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/mongodb.js';
 import router from './routes/allRoutes.js';
+import cors from "cors"
 
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const allowedOrigins = ["http://localhost:5173"];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST", "DELETE"], 
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
+
 app.use(express.json());
 
-
-app.use('/api', router);
 app.get("/", (req, res) => res.send("API WORKING FINE"))
+app.use('/api', router);
+
 
 
 const start = async () => {
