@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiSun, FiMoon, FiMenu, FiX } from 'react-icons/fi';
 import { FaGithub, FaLinkedin, FaTwitter } from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext.jsx'; 
 
-const Navbar = ({ darkMode, toggleDarkMode }) => {
+const Navbar = () => {
+  const { theme, toggleTheme } = useTheme(); 
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className={`${darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} shadow-lg fixed w-full z-50`}>
+    <nav className={`fixed w-full z-50 shadow-lg ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -20,18 +22,18 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             <Link to="/validation" className="hover:text-blue-500 transition-colors">Validation</Link>
             <Link to="/import" className="hover:text-blue-500 transition-colors">Data Manager</Link>
             <button
-              onClick={toggleDarkMode}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
-              {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
+              {theme === 'dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
           </div>
 
-          {/* Mobile menu button */}
+         
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
             >
               {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </button>
@@ -40,27 +42,27 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
       </div>
 
       {isOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-800">
+        <div className={`md:hidden ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
           <div className="px-4 pt-2 pb-3 space-y-1">
             <Link
               to="/validation"
-              className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+              className="block px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"
               onClick={() => setIsOpen(false)}
             >
               Validation
             </Link>
             <Link
               to="/import"
-              className="block px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+              className="block px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"
               onClick={() => setIsOpen(false)}
             >
               Data Manager
             </Link>
             <button
-              onClick={toggleDarkMode}
-              className="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+              onClick={() => { toggleTheme(); setIsOpen(false); }}
+              className="w-full text-left px-3 py-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md"
             >
-              {darkMode ? 'Light Mode' : 'Dark Mode'}
+              {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
             </button>
           </div>
         </div>

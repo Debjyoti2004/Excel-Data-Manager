@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import FileUpload from "./components/FileUpload.jsx";
 import DataManager from "./components/DataManager.jsx";
-import { Navbar, Footer } from "./components/Navbar.jsx"
+import { Navbar, Footer } from "./components/Navbar.jsx";
 import './index.css';
+import { useTheme } from './context/ThemeContext.jsx';
+import NotFound from './components/NotFound.jsx';
 
 
 const App = () => {
+  const { theme, toggleTheme } = useTheme();
+
   const handleUploadSuccess = (data) => {
     console.log("Upload successful:", data);
   };
@@ -15,20 +19,13 @@ const App = () => {
     console.error("Upload error:", error);
   };
 
-  const [darkMode, setDarkMode] = useState(false);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
-
   return (
     <Router>
-      <div className={`min-h-screen flex flex-col ${darkMode ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
-        <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+      <div className={`min-h-screen flex flex-col ${theme}`}>
+        <Navbar theme={theme} toggleTheme={toggleTheme} />
 
-        <main className="flex-grow pt-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="flex-grow flex items-center justify-center pt-16">
+          <div className="w-full max-w-4xl px-8 sm:px-12 lg:px-16 py-12">
             <Routes>
               <Route
                 path="/"
@@ -39,7 +36,6 @@ const App = () => {
                   />
                 }
               />
-
               <Route
                 path="/validation"
                 element={
@@ -49,8 +45,9 @@ const App = () => {
                   />
                 }
               />
-
               <Route path="/import" element={<DataManager />} />
+
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
         </main>

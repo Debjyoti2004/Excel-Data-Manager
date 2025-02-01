@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+
+
+html {
+    background-color: white;
+    
+  }
+  
+  /* Dark Mode */
+  html.dark {
+    background-color: #1a202c;
+    
+  }
+  
+  /* Smooth Transition */
+  body {
+    transition: background-color 0.3s ease-in-out;
+  }
+
+  .dark-mode {
+    background-color: #1a202c;
+    color: #ffffff;
+}
+
+.light-mode {
+    background-color: #ffffff;
+    color: #1a202c;
+}
