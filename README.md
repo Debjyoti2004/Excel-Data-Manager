@@ -1,6 +1,6 @@
 # Excel Data Importer 🚀
 
-![Excel Data Importer Homepage](./image.png)  
+![Excel Data Importer Homepage](./samples/home_page.png)  
 **Live Demo:** [https://excel-data-importer.vercel.app](https://excel-data-importer.vercel.app)
 
 A robust solution for importing and validating Excel (.xlsx) files with real-time error handling, data preview, and seamless MongoDB integration.
@@ -107,8 +107,8 @@ server/
 ❌ Invalid date format in Row 7  
 ❌ Negative amount in Row 12  
 
-[Download Sample Valid File](https://github.com/your-username/excel-data-importer/raw/main/samples/sample_valid.xlsx)  
-[Download Sample Error File](https://github.com/your-username/excel-data-importer/raw/main/samples/sample_errors.xlsx)
+[Download Sample Valid File](https://github.com/Debjyoti2004/Excel-Data-Manager/blob/master/samples/sample_valid.xlsx)  
+[Download Sample Error File](https://github.com/Debjyoti2004/Excel-Data-Manager/blob/master/samples/sample_invalid.xlsx)
 
 
 ---
