@@ -8,11 +8,11 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
+const allowedOrigins = ["https://excel-data-importer.vercel.app"];
 
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL || allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "DELETE"], 
     allowedHeaders: ["Content-Type", "Authorization"],
