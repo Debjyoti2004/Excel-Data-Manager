@@ -5,7 +5,9 @@ import { useTheme } from "../context/ThemeContext";
 
 const FileUpload = ({ onUploadSuccess, onUploadError = (error) => console.error(error) }) => {
 
-  const BACKEND_URL = "http://localhost:3000";
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL 
+
+  
 
   const { theme } = useTheme();
   const fileInputRef = useRef(null);

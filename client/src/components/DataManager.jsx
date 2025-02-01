@@ -4,7 +4,8 @@ import * as XLSX from "xlsx";
 import { toast } from "react-hot-toast";
 import { useTheme } from "../context/ThemeContext";
 
-const BACKEND_URL = "http://localhost:3000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL 
+
 
 
 const DataManager = () => {

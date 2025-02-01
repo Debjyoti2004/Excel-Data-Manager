@@ -10,7 +10,7 @@ import NotFound from './components/NotFound.jsx';
 
 const App = () => {
   const { theme, toggleTheme } = useTheme();
-
+  console.log("Backend URL:", import.meta.env.VITE_BACKEND_URL);
   const handleUploadSuccess = (data) => {
     console.log("Upload successful:", data);
   };
@@ -18,7 +18,6 @@ const App = () => {
   const handleUploadError = (error) => {
     console.error("Upload error:", error);
   };
-
   return (
     <Router>
       <div className={`min-h-screen flex flex-col ${theme}`}>
